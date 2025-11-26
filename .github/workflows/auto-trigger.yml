@@ -96,6 +96,7 @@ jobs:
                 "kernelsu_variant": "SukiSU",
                 "kernelsu_branch": "Stable",
                 "version": "-android14-11-gca0ef6d17716-ab13624819",
+                "build_time": "Tue Jun 10 18:59:08 UTC 2025",
                 "use_zram": "false",
                 "use_bbg": "true",
                 "use_kpm": "true",
