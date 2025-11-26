@@ -3,6 +3,7 @@ name: Test Release
 permissions:
   contents: write
   actions: write
+  workflows: write
 
 concurrency:
   group: release-${{ github.ref }}
