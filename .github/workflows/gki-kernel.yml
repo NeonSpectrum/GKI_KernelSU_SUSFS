@@ -532,7 +532,7 @@ jobs:
           echo "Change to config directory: $CONFIG..."
           cd "$CONFIG"
           
-          if [ ! -z ${{ inputs.version }} ]; then
+          if [ ! -z "${{ inputs.version }}" ]; then
             echo "Version number is not empty"
             sed -i '$s|echo "\$res"|echo "${{ inputs.version }}"|' ./common/scripts/setlocalversion
           else
@@ -543,9 +543,9 @@ jobs:
           # If you need to change the build time, please modify the variable CURRENT_TIME as follows, e.g., CURRENT_TIME="Sat Jun 07 06:29:29 UTC 2025"
           # This string represents UTC time: 2025-06-07 06:29:29, "Sat" is Saturday, "Jun" is June
           # If you want to use Beijing time, it should be: CURRENT_TIME="Sat Jun 07 14:29:29 CST 2025"
-          if [ ! -z ${{ inputs.build_time }} ]; then
+          if [ ! -z "${{ inputs.build_time }}" ]; then
             echo "Build time is not empty"
-            CURRENT_TIME=${{ inputs.build_time }}
+            CURRENT_TIME="${{ inputs.build_time }}"
           else
             echo "Build time is empty, using default value"
             CURRENT_TIME=$(date -u +"%a %b %d %H:%M:%S UTC %Y")
@@ -566,7 +566,7 @@ jobs:
             rm -rf ./common/android/abi_gki_protected_exports_*
             sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl
             # sed -E -i '/^CONFIG_LOCALVERSION=/ s/(.*)"$/\1"/' ./common/arch/arm64/configs/gki_defconfig
-            if [ ! -z ${{ inputs.version }} ]; then
+            if [ ! -z "${{ inputs.version }}" ]; then
               sed -i '/^CONFIG_LOCALVERSION=/ s/="\([^"]*\)"/="${{ inputs.version }}"/' ./common/arch/arm64/configs/gki_defconfig
             fi
           fi
