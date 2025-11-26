@@ -41,6 +41,11 @@ on:
         required: false
         type: string
         default: "-android14-11-gca0ef6d17716-ab13624819"
+      build_time:
+        description: 'Set build time of kernel (e.g. Sat Jun 07 14:29:29 CST 2025)'
+        required: false
+        type: string
+        default: "Tue Jun 10 18:59:08 UTC 2025"
       use_zram:
         description: 'Enable more ZRAM algorithms?'
         required: true
@@ -67,6 +72,7 @@ jobs:
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       version: ${{ inputs.version }}
+      build_time: ${{ inputs.build_time }}
       use_zram: ${{ inputs.use_zram }}
       use_kpm: ${{ inputs.use_kpm }}
       BBG: ${{ inputs.BBG }}

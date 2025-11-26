@@ -540,7 +540,13 @@ jobs:
           # If you need to change the build time, please modify the variable CURRENT_TIME as follows, e.g., CURRENT_TIME="Sat Jun 07 06:29:29 UTC 2025"
           # This string represents UTC time: 2025-06-07 06:29:29, "Sat" is Saturday, "Jun" is June
           # If you want to use Beijing time, it should be: CURRENT_TIME="Sat Jun 07 14:29:29 CST 2025"
-          CURRENT_TIME=$(date -u +"%a %b %d %H:%M:%S UTC %Y")
+          if [ ! -z ${{ inputs.build_time }} ]; then
+            echo "Build time is not empty"
+            CURRENT_TIME=${{ inputs.build_time }}
+          else
+            echo "Build time is empty, using default value"
+            CURRENT_TIME=$(date -u +"%a %b %d %H:%M:%S UTC %Y")
+          fi
 
           echo "CURRENT_TIME=$CURRENT_TIME"
           perl -pi -e "s{UTS_VERSION=\"\\\$\(echo \\\$UTS_VERSION \\\$CONFIG_FLAGS \\\$TIMESTAMP \\| cut -b -\\\$UTS_LEN\)\"}{UTS_VERSION=\"#1 SMP PREEMPT $CURRENT_TIME\"}" ./common/scripts/mkcompile_h

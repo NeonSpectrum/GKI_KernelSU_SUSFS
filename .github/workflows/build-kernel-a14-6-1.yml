@@ -30,6 +30,10 @@ on:
         description: 'Custom version name (e.g., characters after 6.1.93 / leave empty to use default version)'
         required: false
         type: string
+      build_time:
+        description: 'Set build time of kernel (e.g. Sat Jun 07 14:29:29 CST 2025)'
+        required: false
+        type: string
       use_zram:
         description: 'Enable more ZRAM algorithms?'
         required: true
@@ -50,5 +54,6 @@ jobs:
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       version: ${{ inputs.version }}
+      build_time: ${{ inputs.build_time }}
       use_zram: ${{ inputs.use_zram }}
       use_kpm: ${{ inputs.use_kpm }}
