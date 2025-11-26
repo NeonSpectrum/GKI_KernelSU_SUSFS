@@ -89,6 +89,7 @@ jobs:
 
       - name: Configure ccache
         run: |
+          mkdir -p ~/.ccache
           mkdir -p ~/.cache/bazel
           ccache --version
           ccache --max-size=2G
