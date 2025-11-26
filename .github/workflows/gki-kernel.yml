@@ -104,6 +104,11 @@ jobs:
         run: |
           AOSP_MIRROR=https://android.googlesource.com
           BRANCH=main-kernel-build-2024
+
+          echo "Cleaning up existing directories..."
+          rm -rf kernel-build-tools
+          rm -rf mkbootimg
+          
           git clone $AOSP_MIRROR/kernel/prebuilts/build-tools -b $BRANCH --depth 1 kernel-build-tools
           git clone $AOSP_MIRROR/platform/system/tools/mkbootimg -b $BRANCH --depth 1 mkbootimg
 
