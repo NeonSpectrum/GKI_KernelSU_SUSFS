@@ -30,6 +30,7 @@ on:
         description: 'Custom version name (e.g., characters after 6.1.93 / leave empty to use default version)'
         required: false
         type: string
+        default: "-android14-11-gca0ef6d17716-ab13624819"
       use_zram:
         description: 'Enable more ZRAM algorithms?'
         required: true
