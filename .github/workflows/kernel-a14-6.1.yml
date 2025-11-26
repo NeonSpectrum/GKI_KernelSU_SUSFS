@@ -22,6 +22,10 @@ on:
         required: false
         type: string
         default: ""
+      build_time:
+        required: false
+        type: string
+        default: ""
       use_zram:
         description: 'Enable more ZRAM algorithms?'
         required: true

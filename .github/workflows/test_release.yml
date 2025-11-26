@@ -83,7 +83,6 @@ jobs:
     outputs:
       should_release: ${{ steps.check.outputs.should_release }}
     env:
-
       RESULT_A14_6_1: ${{ needs.build-kernel-a14-6-1.result }}
     steps:
       - name: Determine if release should proceed
