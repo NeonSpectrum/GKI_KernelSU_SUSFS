@@ -216,12 +216,6 @@ jobs:
             exit 1
           fi
 
-          # check local: if tag exists locally, delete it so we can recreate cleanly
-          if git rev-parse -q --verify "refs/tags/$NEW_TAG" >/dev/null 2>&1; then
-            echo "Local tag '$NEW_TAG' exists. Deleting local tag to recreate."
-            git tag -d "$NEW_TAG"
-          fi
-
           # Configure Git
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
