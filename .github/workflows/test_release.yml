@@ -70,7 +70,7 @@ jobs:
       use_kpm: ${{ inputs.use_kpm }}
       BBG: ${{ inputs.BBG }}
   check-build-status:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs:
       - build-kernel-a14-6-1
     if: always()
@@ -121,7 +121,7 @@ jobs:
           fi
 
   trigger-release:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     needs:
