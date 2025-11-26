@@ -135,7 +135,7 @@ jobs:
     env:
       REPO_OWNER: NeonSpectrum
       REPO_NAME: GKI_KernelSU_SUSFS
-      MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
       RELEASE_NAME: "GKI Kernel: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }} ${{ inputs.kernelsu_variant }}"
       INITIAL_RELEASE_NOTES: |
         This release includes **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }}**
@@ -183,7 +183,7 @@ jobs:
       - name: Generate and Create New Tag (Atomic)
         if: ${{ steps.release_check.outcome == 'success' }}
         env:
-          MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
           set -e
 
