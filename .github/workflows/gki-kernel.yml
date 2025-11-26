@@ -639,7 +639,7 @@ jobs:
             fi
             ccache --show-stats
 
-      - name: Patch Image file Android 14 and 15 (SukiSU only)
+      - name: Patch Image file (SukiSU only)
         if: ${{ inputs.use_kpm && inputs.kernelsu_variant == 'SukiSU' }}
         run: |
           if [ "${{ inputs.kernel_version }}" != "6.6" ]; then
@@ -658,12 +658,12 @@ jobs:
           echo "Copying Image..."
           cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./
 
-      - name: Create ZIP files in different formats
+      - name: Create ZIP file
         run: |
-          echo "Creating zip files for all formats..."
+          echo "Creating zip file..."
           cd ./AnyKernel3
 
-          # Create and upload zip for each format
+          # Create and upload zip
           ZIP_NAME="${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3.zip"
           echo "Creating zip file: $ZIP_NAME..."
           mv ../Image ./Image
