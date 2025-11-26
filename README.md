@@ -1,90 +1,99 @@
-### 这是一个自动构建GKI内核的仓库
+# Wild Kernels for Android
 
-> 非GKI可以尝试[SukiSU云盘](https://alist.shirkneko.top)的资源，不支持一加ColorOS14、15
->
-> 第一次使用务必**详细阅读**以下内容，不要因为懒惰而占用他人时间！
->
-> 最近更新：1.一加8ELITE处理器可使用6.6内核(未测试)、2.修复这些GKI版本编译报错——[5.10.(66、81、101)、5.15.(74、94、104)]
-### 下载
-可以[在此](https://github.com/zzh20188/GKI_KernelSU_SUSFS/releases)下载您的资源
-1. 关于Anykernel3.zip，下载即用！
-- 然后使用刷入软件，例如[HorizonKernelFlasher](https://github.com/libxzr/HorizonKernelFlasher/releases)进行刷写内核
-2. 关于boot.img，下载与你内核格式相匹配的（无压缩、gz、lz4），[参考](https://kernelsu.org/zh_CN/guide/installation.html#install-by-kernelsu-boot-image) **找到合适的 boot.img** 一节
-- 使用[FASTBOOT](https://magiskcn.com/)刷入，或者使用刷写软件刷写到ROOT所在插槽的boot分区(例如爱玩机、Kernelflasher)
+## Your warranty is no longer valid!
 
-### 支持
-| 功能 | 说明 |
-| --- | --- |
-| [KernelSU](https://kernelsu.org/zh_CN/) | 包括**原版、MKSU、SUKISU、NEXT** |
-| [SUSFS4](https://gitlab.com/simonpunk/susfs4ksu) | 在内核层面辅助KSU隐藏的功能补丁 |
-| [BBR](https://blog.thinkin.top/archives/ke-pu-bbrdao-di-shi-shi-me) | TCP拥塞控制算法，使网络更快？ |
-| [Wireguard](https://zh.wikipedia.org/wiki/WireGuard) | 参考左侧wiki链接 |
-| [LZ4KD](https://github.com/ShirkNeko/SukiSU_patch/tree/main/other) | 听说是来自HUAWEI source的ZRAM算法，补丁由[云彩之枫](http://www.coolapk.com/u/24963680)移植 |
+I am **not responsible** for bricked devices, damaged hardware, or any issues that arise from using this kernel.
 
-<details>
+**Please** do thorough research and fully understand the features included in this kernel before flashing it!
 
-<summary>还支持这几种算法，可在scene的ZRAM切换</summary>
+By flashing this kernel, **YOU** are choosing to make these modifications. If something goes wrong, **do not blame me**!
 
-### LZ4K、LZ4HC、deflate、842、~~zstdn~~、lz4k_oplus
+---
 
-</details>
+### Proceed at your own risk!
 
-### KSU管理器
-在编译完成后，你会看到类似 `Next-Manager(12600)`的文件，简单来说这就是与内核一同上传的***最新管理器***。
-![例子](./assets/get_manager.gif)
-同样的，在[Release](https://github.com/zzh20188/GKI_KernelSU_SUSFS/releases)也同样包含***最新管理器***！
-![release](./assets/release_manager.gif)
+---
 
-### 紧急救援指南
+# Kernels:
+ 
+[GKI](https://github.com/WildPlusKernel/GKI_KernelSU_SUSFS)  
+[Sultan](https://github.com/WildPlusKernel/Sultan_KernelSU_SUSFS)  
+[OnePlus](https://github.com/WildPlusKernel/OnePlus_KernelSU_SUSFS)  
+[Legacy Pixels](https://github.com/WildPlusKernel/Pixel_KernelSU_SUSFS)  
 
-> [!IMPORTANT]
-> **触发条件**  
-> 当设备因以下原因无法启动时需执行救援：  
-> - 刷入错误/不兼容的内核
-> - 内核版本适配异常（如5.10.66刷233版本的内核）
-1. 进入FASTBOOT模式
+---
 
-- 物理键组合：电源+音量- 或者 ADB命令： `adb reboot bootloader`
+# Other Links:
 
-2. 执行刷写命令
-```bash
-$ fastboot flash boot <boot.img文件全称>
-```
-### 原版镜像获取途径
-1. 从现有固件提取
+[Kernel Patches](https://github.com/WildPlusKernel/kernel_patches)  
+[Old Build Scripts](https://github.com/TheWildJames/kernel_build_scripts)  
+[Kernel Flasher](https://github.com/capntrips/KernelFlasher/releases)  
 
-- 卡刷包：解压后使用[payload-dumper工具](https://magiskcn.com/payload-dumper-go-boot.html)
+---
 
-- 线刷包：直接解压获取boot.img
+# Installation instructions: 
 
-2.外部资源获取
+Follow the steps for GKI:  
+[Installation](https://kernelsu.org/guide/installation.html)
 
-- 社区平台搜索：机型+原厂boot (如XDA/酷安)
+To get boot.img format:  
+[Telegram Bot](https://t.me/wildpluskernel/22076)  
+[Get My Kernel Format](https://github.com/TheWildJames/Get_My_Kernel_Format)
 
-- [移动端在线提取远程获取](https://magiskcn.com/payload-dumper-compose.html)
+---
 
-> [!TIP]
-> ### 内核版本兼容性说明
-> 
-> **1. 跨子版本刷机规则**  
-> 当手机GKI主版本为5.10.x时（如5.10.168），可刷写同主版本更高子版本的内核（如5.10.198）。  
-> 关于**X-lts**版本，以 `android12-5.10.X-lts-AnyKernel3.zip` 为例：
-> - **X-lts** 表示长期支持版（子版本号最大，当前示例为5.10.236）
-> - LTS随着GKI源码更新，编译版本号将持续递增（其他如198的版本，是永久固定的）
-> - ⚠️ 注意：LTS虽为最新，**但**最新版≠最稳定（如6.6.x存在自动重启BUG）
-> 
-> **2. 内核版本伪装方法**  
-> 在MT管理器终端执行：
-> ```bash
-> uname -r | sed 's/^[^-]*//'
-> ```
-> 获取后直接复制，将此版本号填入Action编译面板即可实现内核版本伪装。
-> 
-> **3. 编译优化建议**  
-> 修改 [配置文件](.github/workflows/kernel-a12-5.10.yml)（如kernel-a12-5.10.yml）：
-> - ▶️ 删除/注释不需要的GKI版本配置（**加速编译**）
-> - ➕ 添加指定GKI版本（参考[定制指南](https://www.coolapk.com/feed/62820671?shareKey=OGMxYmZmNTk0YzIxNjgxNzM1MzI~&shareUid=11253396&shareFrom=com.coolapk.market_15.2.2)）
-> - 📅 内核构建时间，参照[gki-kernel.yml](.github/workflows/gki-kernel.yml) 文件 **`第490行左右的注释`** 进行修改
+# Features
 
-### 更多内容
-可以提及您的意见...我会尝试！
+- **KernelSU**: KernelSU is a root solution for Android GKI devices, it works in kernel mode and grants root permission to userspace applications directly in kernel space.
+- **SUSFS**: An addon root hiding kernel patches and userspace module for KernelSU.
+
+---
+
+# Credits
+
+- **KernelSU**: Developed by [tiann](https://github.com/tiann).
+- **KernelSU-Next**: Developed by [rifsxd](https://github.com/rifsxd/KernelSU-Next).
+- **Magic-KSU**: Developed by [5ec1cff](https://github.com/5ec1cff/KernelSU).  
+- **SUSFS**: Developed by [simonpunk](https://gitlab.com/simonpunk/susfs4ksu.git).
+- **SUSFS Module**: Developed by [sidex15](https://github.com/sidex15).
+- **Sultan Kernels**: Developed by [kerneltoast](https://github.com/kerneltoast).
+
+Special thanks to the open-source community for their contributions!
+
+---
+
+# Support
+
+If you encounter any issues or need help, feel free to open an issue in this repository or reach out to me.
+
+---
+
+# Disclaimer
+
+Flashing this kernel will void your warranty, and there is always a risk of bricking your device. Please make sure to back up your data and ensure you understand the risks before proceeding.
+
+**Proceed at your own risk!**
+
+---
+
+# To-DO
+
+- [X] Get Stoned & Build kernels!
+
+---
+
+### If you need your kernel version added please let me know and I will build it!
+
+[Telegram](https://t.me/TheWildJames) NO DMS PLEASE! Ask in chat below!  
+[Telegram Group](https://t.me/wildpluskernel)  
+
+# Special thanks to the following people for their contributions!
+This helps me alot! <3
+
+[simonpunk](https://gitlab.com/simonpunk/susfs4ksu.git) - Created SUSFS!  
+[sidex15](https://github.com/sidex15) - Created module!  
+[backslashxx](https://github.com/backslashxx) - Helped with patches!  
+[Teemo](https://github.com/liqideqq) - Helped with patches!  
+[MuLuo](https://github.com/MuLuo688) - Donation!
+
+If you have contributed and are not here please remind me!

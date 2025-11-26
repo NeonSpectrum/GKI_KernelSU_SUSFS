@@ -16,14 +16,6 @@ on:
         required: true
         type: boolean
         default: true
-      kernels_to_build:
-        description: |
-          Comma-separated list of kernels to build/release, e.g.:
-          a12-5.10,a13-5.10,a13-5.15,a14-5.15,a14-6.1,a15-6.6
-          or "all" to build every kernel.
-        required: true
-        type: string
-        default: 'a14-6.1'
       kernelsu_variant:
         description: "Select KernelSU"
         required: true
@@ -39,10 +31,10 @@ on:
         required: true
         type: choice
         options:
-        - Stable(标准)
-        - Dev(开发)
-        - Other(其他/指定)
-        default: Stable(标准)
+        - Stable
+        - Dev
+        - Other
+        default: Stable
       version:
         description: 'Custom version name (e.g., characters after 5.10.198 / leave blank to use default version number)'
         required: false
@@ -58,78 +50,14 @@ on:
         type: boolean
         default: true
       BBG:
-        description: "是否启用内核层面阻止对关键分区/设备节点的非法写入(LSM)？"
+        description: "Enable Kernel-level blocking of illegal writes to critical partitions/device nodes (LSM)?"
         required: true
         type: boolean
         default: true
-      get_manager:
-        description: 'Get the latest KSU Manager at the same time?'
-        required: true
-        type: boolean
-        default: false
+
 
 jobs:
-  get_manager:
-    if: ${{ inputs.get_manager }}
-    uses: ./.github/workflows/get-manager.yml
-    secrets: inherit
-    with:
-      kernelsu_variant: ${{ inputs.kernelsu_variant }}
-
-  build-kernel-a12-5-10:
-    if: contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a12-5.10')
-    uses: ./.github/workflows/kernel-a12-5.10.yml
-    secrets: inherit
-    with:
-      make_release: ${{ inputs.make_release }}
-      kernelsu_variant: ${{ inputs.kernelsu_variant }}
-      kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      version: ${{ inputs.version }}
-      use_zram: ${{ inputs.use_zram }}
-      use_kpm: ${{ inputs.use_kpm }}
-      BBG: ${{ inputs.BBG }}
-
-  build-kernel-a13-5-10:
-    if: contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a13-5.10')
-    uses: ./.github/workflows/kernel-a13-5.10.yml
-    secrets: inherit
-    with:
-      make_release: ${{ inputs.make_release }}
-      kernelsu_variant: ${{ inputs.kernelsu_variant }}
-      kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      version: ${{ inputs.version }}
-      use_zram: ${{ inputs.use_zram }}
-      use_kpm: ${{ inputs.use_kpm }}
-      BBG: ${{ inputs.BBG }}
-
-  build-kernel-a13-5-15:
-    if: contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a13-5.15')
-    uses: ./.github/workflows/kernel-a13-5.15.yml
-    secrets: inherit
-    with:
-      make_release: ${{ inputs.make_release }}
-      kernelsu_variant: ${{ inputs.kernelsu_variant }}
-      kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      version: ${{ inputs.version }}
-      use_zram: ${{ inputs.use_zram }}
-      use_kpm: ${{ inputs.use_kpm }}
-      BBG: ${{ inputs.BBG }}
-
-  build-kernel-a14-5-15:
-    if: contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a14-5.15')
-    uses: ./.github/workflows/kernel-a14-5.15.yml
-    secrets: inherit
-    with:
-      make_release: ${{ inputs.make_release }}
-      kernelsu_variant: ${{ inputs.kernelsu_variant }}
-      kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      version: ${{ inputs.version }}
-      use_zram: ${{ inputs.use_zram }}
-      use_kpm: ${{ inputs.use_kpm }}
-      BBG: ${{ inputs.BBG }}
-
   build-kernel-a14-6-1:
-    if: contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a14-6.1')
     uses: ./.github/workflows/kernel-a14-6.1.yml
     secrets: inherit
     with:
@@ -140,48 +68,16 @@ jobs:
       use_zram: ${{ inputs.use_zram }}
       use_kpm: ${{ inputs.use_kpm }}
       BBG: ${{ inputs.BBG }}
-
-  build-kernel-a15-6-6:
-    if: contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a15-6.6')
-    uses: ./.github/workflows/kernel-a15-6.6.yml
-    secrets: inherit
-    with:
-      make_release: ${{ inputs.make_release }}
-      kernelsu_variant: ${{ inputs.kernelsu_variant }}
-      kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      version: ${{ inputs.version }}
-      use_zram: ${{ inputs.use_zram }}
-      use_kpm: ${{ inputs.use_kpm }}
-      BBG: ${{ inputs.BBG }}
-
   check-build-status:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs:
-      - get_manager
-      - build-kernel-a12-5-10
-      - build-kernel-a13-5-10
-      - build-kernel-a13-5-15
-      - build-kernel-a14-5-15
       - build-kernel-a14-6-1
-      - build-kernel-a15-6-6
     if: always()
     outputs:
       should_release: ${{ steps.check.outputs.should_release }}
     env:
-      SHOULD_RUN_A12_5_10: ${{ contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a12-5.10') }}
-      SHOULD_RUN_A13_5_10: ${{ contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a13-5.10') }}
-      SHOULD_RUN_A13_5_15: ${{ contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a13-5.15') }}
-      SHOULD_RUN_A14_5_15: ${{ contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a14-5.15') }}
-      SHOULD_RUN_A14_6_1: ${{ contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a14-6.1') }}
-      SHOULD_RUN_A15_6_6: ${{ contains(github.event.inputs.kernels_to_build, 'all') || contains(github.event.inputs.kernels_to_build, 'a15-6.6') }}
-      
-      RESULT_GET_MANAGER: ${{ needs.get_manager.result }}
-      RESULT_A12_5_10: ${{ needs.build-kernel-a12-5-10.result }}
-      RESULT_A13_5_10: ${{ needs.build-kernel-a13-5-10.result }}
-      RESULT_A13_5_15: ${{ needs.build-kernel-a13-5-15.result }}
-      RESULT_A14_5_15: ${{ needs.build-kernel-a14-5-15.result }}
+
       RESULT_A14_6_1: ${{ needs.build-kernel-a14-6-1.result }}
-      RESULT_A15_6_6: ${{ needs.build-kernel-a15-6-6.result }}
     steps:
       - name: Determine if release should proceed
         id: check
@@ -190,15 +86,6 @@ jobs:
           ERROR_MESSAGE=""
           
           echo "--- Checking Job Statuses ---"
-          echo "get_manager result: $RESULT_GET_MANAGER"
-          
-          # 1. Check get_manager job only if it was supposed to run
-          if [[ "${{ inputs.get_manager }}" == "true" ]]; then
-            if [[ "$RESULT_GET_MANAGER" != "success" ]]; then
-              SHOULD_PROCEED="false"
-              ERROR_MESSAGE+="get_manager job did not succeed (result: $RESULT_GET_MANAGER). "
-            fi
-          fi
           
           # Function to check a kernel job
           check_kernel_job() {
@@ -221,12 +108,7 @@ jobs:
             fi
           }
           
-          check_kernel_job "a12-5.10" "$SHOULD_RUN_A12_5_10" "$RESULT_A12_5_10"
-          check_kernel_job "a13-5.10" "$SHOULD_RUN_A13_5_10" "$RESULT_A13_5_10"
-          check_kernel_job "a13-5.15" "$SHOULD_RUN_A13_5_15" "$RESULT_A13_5_15"
-          check_kernel_job "a14-5.15" "$SHOULD_RUN_A14_5_15" "$RESULT_A14_5_15"
-          check_kernel_job "a14-6.1" "$SHOULD_RUN_A14_6_1" "$RESULT_A14_6_1"
-          check_kernel_job "a15-6.6" "$SHOULD_RUN_A15_6_6" "$RESULT_A15_6_6"
+          check_kernel_job "a14-6.1" "true" "$RESULT_A14_6_1"
           
           echo "Final decision - SHOULD_PROCEED: $SHOULD_PROCEED"
           echo "Accumulated Errors: $ERROR_MESSAGE"
@@ -238,17 +120,16 @@ jobs:
           fi
 
   trigger-release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: write
     needs:
       - check-build-status
-      - get_manager
     if: always()
     env:
       REPO_OWNER: NeonSpectrum
       REPO_NAME: GKI_KernelSU_SUSFS
-      GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       RELEASE_NAME: "GKI Kernel: ${{ inputs.kernelsu_variant == 'Next' && 'KernelSU-' || '' }} ${{ inputs.kernelsu_variant }}"
       INITIAL_RELEASE_NOTES: |
         This release includes **${{ inputs.kernelsu_variant == 'Next' && 'KernelSU' || '' }}${{ inputs.kernelsu_variant }}**
@@ -296,7 +177,7 @@ jobs:
       - name: Generate and Create New Tag (Atomic)
         if: ${{ steps.release_check.outcome == 'success' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
 
@@ -375,7 +256,7 @@ jobs:
         if: ${{ steps.release_check.outcome == 'success' }}
         run: |
           # Handle 'Other' branch selection
-          if [[ "${{ inputs.kernelsu_branch }}" == "Other(其他/指定)" ]]; then
+          if [[ "${{ inputs.kernelsu_branch }}" == "Other" ]]; then
             echo "Using custom branch selection"
             if [[ "${{ inputs.kernelsu_variant }}" == "Official" ]]; then
               KSU_BRANCH="main"
@@ -384,13 +265,13 @@ jobs:
             else
               KSU_BRANCH="main"  # Default for MKSU/SukiSU
             fi
-          elif [[ "${{ inputs.kernelsu_branch }}" == "Dev(开发)" || "${{ inputs.kernelsu_variant }}" == "MKSU" || "${{ inputs.kernelsu_variant }}" == "SukiSU" ]]; then
+          elif [[ "${{ inputs.kernelsu_branch }}" == "Dev" || "${{ inputs.kernelsu_variant }}" == "MKSU" || "${{ inputs.kernelsu_variant }}" == "SukiSU" ]]; then
             if [[ "${{ inputs.kernelsu_variant }}" == "Official" || "${{ inputs.kernelsu_variant }}" == "MKSU" || "${{ inputs.kernelsu_variant }}" == "SukiSU" ]]; then
               KSU_BRANCH="main"
             elif [[ "${{ inputs.kernelsu_variant }}" == "Next" ]]; then
               KSU_BRANCH="next"
             fi
-          elif [[ "${{ inputs.kernelsu_branch }}" == "Stable(标准)" && "${{ inputs.kernelsu_variant }}" != "MKSU" ]]; then
+          elif [[ "${{ inputs.kernelsu_branch }}" == "Stable" && "${{ inputs.kernelsu_variant }}" != "MKSU" ]]; then
             KSU_REPO_URL=""
             if [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
               KSU_REPO_URL="https://github.com/tiann/KernelSU.git"
@@ -432,7 +313,7 @@ jobs:
           
           KSU_REF=""
           KSU_URL=""
-          if [[ "${{ inputs.kernelsu_branch }}" == "Stable(标准)" && "${{ inputs.kernelsu_variant }}" != "MKSU" ]]; then
+          if [[ "${{ inputs.kernelsu_branch }}" == "Stable" && "${{ inputs.kernelsu_variant }}" != "MKSU" ]]; then
             TAG=$(git ls-remote --tags --sort=-v:refname "$KSU_REPO_URL" | grep -o 'refs/tags/.*' | cut -d'/' -f3 | head -n1)
             KSU_REF="${TAG:-UNKNOWN_TAG}"
             KSU_URL="https://github.com/$KSU_REPO_URL2/releases/tag/$KSU_REF"
@@ -446,16 +327,6 @@ jobs:
           
           FINAL_RELEASE_NOTES="${{ env.INITIAL_RELEASE_NOTES }}"
           
-          if [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
-            FINAL_RELEASE_NOTES+="\nOfficial Manager:\n-> https://github.com/tiann/KernelSU"
-          elif [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
-            FINAL_RELEASE_NOTES+="\nNext Manager:\n-> https://github.com/KernelSU-Next/KernelSU-Next"
-          elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
-            FINAL_RELEASE_NOTES+="\nMKSU Manager:\n-> https://github.com/5ec1cff/KernelSU"
-          elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
-            FINAL_RELEASE_NOTES+="\nSukiSU Manager:\n-> https://github.com/ShirkNeko/SukiSU-Ultra"
-          fi
-          
           FINAL_RELEASE_NOTES+="\n\nLTO: thin"
           FINAL_RELEASE_NOTES+="\n\n<details>"
           FINAL_RELEASE_NOTES+="\n<summary>Commit Information</summary>"
@@ -467,45 +338,11 @@ jobs:
           GITLAB_REPO="susfs4ksu"
           
           declare -A BRANCH_MAP=(
-            ["a12-5.10"]="gki-android12-5.10"
-            ["a13-5.10"]="gki-android13-5.10"
-            ["a13-5.15"]="gki-android13-5.15"
-            ["a14-5.15"]="gki-android14-5.15"
             ["a14-6.1"]="gki-android14-6.1"
-            ["a15-6.6"]="gki-android15-6.6"
           )
           
           declare -a KERNELS_TO_FETCH_SUSFS
-          if [[ "${{ inputs.kernels_to_build }}" == "all" ]]; then
-            for key in "${!BRANCH_MAP[@]}"; do
-              KERNELS_TO_FETCH_SUSFS+=("$key")
-            done
-          else
-            IFS=',' read -r -a INPUT_KERNELS <<< "${{ inputs.kernels_to_build }}"
-            for kernel_input in "${INPUT_KERNELS[@]}"; do
-              case "$kernel_input" in
-                "a12")
-                  KERNELS_TO_FETCH_SUSFS+=("a12-5.10")
-                  ;;
-                "a13")
-                  KERNELS_TO_FETCH_SUSFS+=("a13-5.10" "a13-5.15")
-                  ;;
-                "a14")
-                  KERNELS_TO_FETCH_SUSFS+=("a14-5.15" "a14-6.1")
-                  ;;
-                "a15")
-                  KERNELS_TO_FETCH_SUSFS+=("a15-6.6")
-                  ;;
-                *)
-                  if [[ -n "${BRANCH_MAP[$kernel_input]}" ]]; then
-                    KERNELS_TO_FETCH_SUSFS+=("$kernel_input")
-                  else
-                    echo "Warning: Input kernel '$kernel_input' does not have a defined SUSFS branch mapping. Skipping." >&2
-                  fi
-                  ;;
-              esac
-            done
-          fi
+          KERNELS_TO_FETCH_SUSFS+=("a14-6.1")
 
           mapfile -t SORTED_KERNELS < <(printf '%s\n' "${KERNELS_TO_FETCH_SUSFS[@]}" | sort)
           KERNELS_TO_FETCH_SUSFS=("${SORTED_KERNELS[@]}")
@@ -559,12 +396,12 @@ jobs:
           prerelease: true
           release_name: ${{ env.RELEASE_NAME }}
           body: ${{ env.FULL_RELEASE_NOTES }}
-          token: ${{ secrets.MY_GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Upload Release Assets
         if: ${{ steps.release_check.outcome == 'success' }}
         env:
-          GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Uploading release assets..."
           
@@ -581,16 +418,4 @@ jobs:
         run: |
           echo "Uploaded assets:"
           gh release view "${{ env.NEW_TAG }}" --json assets -q '.assets[].name'
-
-      - name: send telegram message on push
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_MESSAGE_THREAD_ID: ${{ secrets.TELEGRAM_MESSAGE_THREAD_ID }}
-        run: |
-            curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-            -d "chat_id=$TELEGRAM_CHAT_ID" \
-            -d "message_thread_id=$TELEGRAM_MESSAGE_THREAD_ID" \
-            -d "text=Latest release: 
-            https://github.com/ShirkNeko/GKI_KernelSU_SUSFS/releases/tag/${{ env.NEW_TAG }}
-            ${{ env.RELEASE_NOTES }}"    
+          
