@@ -119,26 +119,8 @@ jobs:
         run: |
           AOSP_MIRROR=https://android.googlesource.com
           BRANCH=main-kernel-build-2024
-
-          # Update or clone kernel-build-tools
-          if [ -d "kernel-build-tools/.git" ]; then
-            echo "Updating kernel-build-tools..."
-            cd kernel-build-tools && git pull && cd ..
-          else
-            echo "Cloning kernel-build-tools..."
-            rm -rf kernel-build-tools
-            git clone $AOSP_MIRROR/kernel/prebuilts/build-tools -b $BRANCH --depth 1 kernel-build-tools
-          fi
-
-          # Update or clone mkbootimg
-          if [ -d "mkbootimg/.git" ]; then
-            echo "Updating mkbootimg..."
-            cd mkbootimg && git pull && cd ..
-          else
-            echo "Cloning mkbootimg..."
-            rm -rf mkbootimg
-            git clone $AOSP_MIRROR/platform/system/tools/mkbootimg -b $BRANCH --depth 1 mkbootimg
-          fi
+          git clone $AOSP_MIRROR/kernel/prebuilts/build-tools -b $BRANCH --depth 1 kernel-build-tools
+          git clone $AOSP_MIRROR/platform/system/tools/mkbootimg -b $BRANCH --depth 1 mkbootimg
 
       - name: Set environment variables
         run: |
@@ -171,45 +153,11 @@ jobs:
           # Debug print the branches
           echo "Using branch for SUSFS: $SUSFS_BRANCH"
 
-          # Update or clone AnyKernel3
-          if [ -d "AnyKernel3/.git" ]; then
-            echo "Updating AnyKernel3..."
-            cd AnyKernel3 && git fetch origin && git checkout "$ANYKERNEL_BRANCH" && git pull && cd ..
-          else
-            echo "Cloning AnyKernel3..."
-            rm -rf AnyKernel3
-            git clone https://github.com/WildPlusKernel/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
-          fi
-
-          # Update or clone susfs4ksu
-          if [ -d "susfs4ksu/.git" ]; then
-            echo "Updating susfs4ksu..."
-            cd susfs4ksu && git fetch origin && git checkout "$SUSFS_BRANCH" && git pull && cd ..
-          else
-            echo "Cloning susfs4ksu..."
-            rm -rf susfs4ksu
-            git clone https://github.com/ShirkNeko/susfs4ksu.git -b "$SUSFS_BRANCH"
-          fi
-
-          # Update or clone kernel_patches
-          if [ -d "kernel_patches/.git" ]; then
-            echo "Updating kernel_patches..."
-            cd kernel_patches && git pull && cd ..
-          else
-            echo "Cloning kernel_patches..."
-            rm -rf kernel_patches
-            git clone https://github.com/Tools-cx-app/kernel_patches.git
-          fi
-
-          # Update or clone SukiSU_patch
-          if [ -d "SukiSU_patch/.git" ]; then
-            echo "Updating SukiSU_patch..."
-            cd SukiSU_patch && git pull && cd ..
-          else
-            echo "Cloning SukiSU_patch..."
-            rm -rf SukiSU_patch
-            git clone https://github.com/ShirkNeko/SukiSU_patch.git
-          fi
+          # Clone repositories using the branch names
+          git clone https://github.com/WildPlusKernel/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
+          git clone https://github.com/ShirkNeko/susfs4ksu.git -b "$SUSFS_BRANCH"
+          git clone https://github.com/Tools-cx-app/kernel_patches.git
+          git clone https://github.com/ShirkNeko/SukiSU_patch.git
           
       - name: Set CONFIG environment variable
         run: |
