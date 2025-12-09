@@ -18,7 +18,7 @@ jobs:
       - name: Get latest commit SHA from SukiSU-Ultra
         id: get_sha
         run: |
-          LATEST_SHA=$(curl -s https://api.github.com/repos/SukiSU-Ultra/SukiSU-Ultra/commits/main | jq -r '.sha')
+          LATEST_SHA=$(curl -s https://api.github.com/repos/SukiSU-Ultra/SukiSU-Ultra/commits/builtin | jq -r '.sha')
           echo "sha=$LATEST_SHA" >> $GITHUB_OUTPUT
           echo "Latest SHA: $LATEST_SHA"
           
