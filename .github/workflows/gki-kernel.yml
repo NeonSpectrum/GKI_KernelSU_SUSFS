@@ -212,13 +212,13 @@ jobs:
           
           case "$branch_input" in
             "Stable")
-              echo "BRANCH=-s susfs-main" >> $GITHUB_ENV
+              echo "BRANCH=-s builtin" >> $GITHUB_ENV
               ;;
             "Dev")
               case "$variant_input" in
                 "Official" | "MKSU") echo "BRANCH=-s main" >> $GITHUB_ENV ;;
                 "Next")              echo "BRANCH=-s next-susfs-dev" >> $GITHUB_ENV ;;
-                "SukiSU")           echo "BRANCH=-s susfs-test" >> $GITHUB_ENV ;;
+                "SukiSU")           echo "BRANCH=-s builtin" >> $GITHUB_ENV ;;
                 *) 
                   echo "Error: Variant '$variant_input' undefined for dev branch" >&2
                   exit 1
