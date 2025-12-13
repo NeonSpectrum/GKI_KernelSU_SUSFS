@@ -106,7 +106,9 @@ jobs:
       - name: Restore ccache from cache
         uses: actions/cache@v4
         with:
-          path: ~/.ccache
+          path: |
+            ~/.ccache
+            ~/.cache/bazel
           key: ${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}-ccache-${{ github.sha }}
           restore-keys: |
             ${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}-ccache-
