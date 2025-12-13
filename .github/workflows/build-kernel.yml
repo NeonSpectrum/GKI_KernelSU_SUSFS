@@ -104,7 +104,7 @@ jobs:
       - name: Install repo
         run: |
           # Install dependencies
-          if [ -d .git-repo ]; then
+          if [ ! -d .git-repo ]; then
             mkdir -p ./git-repo
             curl https://storage.googleapis.com/git-repo-downloads/repo > ./git-repo/repo
             chmod a+rx ./git-repo/repo
