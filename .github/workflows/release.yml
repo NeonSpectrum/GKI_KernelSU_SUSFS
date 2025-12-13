@@ -39,12 +39,12 @@ on:
         description: 'Custom version name (e.g., characters after 5.10.198 / leave blank to use default version number)'
         required: false
         type: string
-        default: ${{ vars.DEFAULT_KERNEL_VERSION }}
+        default: ""
       build_time:
         description: 'Set build time of kernel (e.g. Sat Jun 07 14:29:29 CST 2025)'
         required: false
         type: string
-        default: ${{ vars.DEFAULT_KERNEL_BUILD_TIME }}
+        default: ""
       use_zram:
         description: 'Enable more ZRAM algorithms?'
         required: true
@@ -84,8 +84,8 @@ jobs:
       os_patch_level: ${{ matrix.os_patch_level }}
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
-      version: ${{ inputs.version }}
-      build_time: ${{ inputs.build_time }}
+      version: ${{ inputs.version != '' && inputs.version || vars.DEFAULT_KERNEL_VERSION }}
+      build_time: ${{ inputs.build_time != '' && inputs.build_time || vars.DEFAULT_KERNEL_BUILD_TIME }}
       use_zram: ${{ inputs.use_zram }}
       use_kpm: ${{ inputs.use_kpm }}
       use_bbg: ${{ inputs.use_bbg }}
