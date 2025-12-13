@@ -60,7 +60,7 @@ on:
         required: true
         type: boolean
         default: true
-      use_hymo_fs:
+      use_hymofs:
         description: 'Enable HymoFS?'
         required: true
         type: boolean
@@ -89,7 +89,7 @@ jobs:
       use_zram: ${{ inputs.use_zram }}
       use_kpm: ${{ inputs.use_kpm }}
       use_bbg: ${{ inputs.use_bbg }}
-      use_hymo_fs: ${{ inputs.use_hymo_fs }}
+      use_hymofs: ${{ inputs.use_hymofs }}
   release:
     runs-on: ubuntu-latest
     permissions:

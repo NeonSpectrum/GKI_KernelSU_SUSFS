@@ -42,7 +42,7 @@ on:
         required: true
         type: boolean
         default: false
-      use_hymo_fs:
+      use_hymofs:
         required: true
         type: boolean
         default: false
@@ -102,7 +102,7 @@ jobs:
           mkdir -p ~/.cache/bazel
           echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
           ccache --version
-          ccache --max-size=2G
+          ccache --max-size=10G
           ccache --set-config=compression=true
           echo "Initial ccache stats:"
           ccache -s
@@ -333,13 +333,13 @@ jobs:
           fi
 
       - name: Install HymoFS patches
-        if: ${{ inputs.use_hymo_fs }}
+        if: ${{ inputs.use_hymofs }}
         run: |
           echo "Change to config directory: $CONFIG..."
           cd "$CONFIG/common"
           
           echo "Applying HymoFS patches..."
-          curl -LSs "https://raw.githubusercontent.com/Anatdx/HymoFS/1fd37123a4c6f4a234878749efcd57958bafe734/patch/hymofs_with_susfs.patch" -o hymofs_with_susfs.patch
+          curl -LSs "${{ vars.HYMOFS_PATCH_URL }}" -o hymofs_with_susfs.patch
           patch -p1 -F 3 < hymofs_with_susfs.patch
           
           echo "Registering HymoFS in fs/Makefile..."
@@ -532,7 +532,7 @@ jobs:
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
           
           # Add HymoFS configuration settings
-          if [ "${{ inputs.use_hymo_fs }}" == "true" ]; then
+          if [ "${{ inputs.use_hymofs }}" == "true" ]; then
             echo "CONFIG_HYMOFS=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
           
@@ -639,7 +639,7 @@ jobs:
           mv ../Image ./Image
           zip -r "../$ZIP_NAME" ./*
           rm ./Image
-          
+
       - name: Upload build assets
         uses: actions/upload-artifact@v4
         with:
