@@ -86,15 +86,6 @@ jobs:
       - name: Install ccache
         run: sudo apt update && sudo apt upgrade -y && sudo apt install -y ccache python3 git curl
 
-      - name: Configure ccache
-        run: |
-          mkdir -p ~/.ccache
-          mkdir -p ~/.cache/bazel
-          ccache --version
-          ccache --max-size=2G
-          ccache --set-config=compression=true
-          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
-
       - name: Restore ccache from cache
         uses: actions/cache@v4
         with:
@@ -104,6 +95,17 @@ jobs:
           key: ${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}-ccache-${{ github.sha }}
           restore-keys: |
             ${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}-ccache-
+
+      - name: Configure ccache
+        run: |
+          mkdir -p ~/.ccache
+          mkdir -p ~/.cache/bazel
+          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
+          ccache --version
+          ccache --max-size=2G
+          ccache --set-config=compression=true
+          echo "Initial ccache stats:"
+          ccache -s
 
       - name: Cache toolchain
         id: cache-toolchain
@@ -595,12 +597,19 @@ jobs:
             sed -i '/KMI_SYMBOL_LIST_STRICT_MODE/d' common/build.config.gki.aarch64
 
             echo "Building the kernel..."
+            echo "Bazel cache size before build:"
+            du -sh /home/runner/.cache/bazel || echo "Bazel cache directory not found"
+
             if [ -f "build/build.sh" ]; then
               LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh CC="/usr/bin/ccache clang" || exit 1
             else
               tools/bazel build --disk_cache=/home/runner/.cache/bazel --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
             fi
-            ccache --show-stats
+            
+            echo "Bazel cache size after build:"
+            du -sh /home/runner/.cache/bazel || echo "Bazel cache directory not found"
+            
+            # ccache --show-stats # Commenting out as we are focusing on Bazel cache
 
       - name: Patch Image file (SukiSU only)
         if: ${{ inputs.use_kpm && inputs.kernelsu_variant == 'SukiSU' }}
