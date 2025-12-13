@@ -165,6 +165,7 @@ jobs:
           git clone https://github.com/ShirkNeko/susfs4ksu.git -b "$SUSFS_BRANCH"
           git clone https://github.com/Tools-cx-app/kernel_patches.git
           git clone https://github.com/ShirkNeko/SukiSU_patch.git
+          git clone https://github.com/Anatdx/HymoFS.git
           
       - name: Set CONFIG environment variable
         run: |
@@ -519,8 +520,7 @@ jobs:
         run: |
           echo "Change to config directory: $CONFIG..."
           cd "$CONFIG"
-          wget https://raw.githubusercontent.com/Anatdx/HymoFS/refs/heads/main/patch/hymofs_with_susfs.patch
-          patch -p1 -F 3 < hymofs_with_susfs.patch
+          patch -p1 -F 3 < ../HymoFS/patch/hymofs_with_susfs.patch
           echo "CONFIG_HYMOFS=y" >> ./common/arch/arm64/configs/gki_defconfig # Write to defconfig
 
       - name: Configure kernel name
