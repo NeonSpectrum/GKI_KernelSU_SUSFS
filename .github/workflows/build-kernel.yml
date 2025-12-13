@@ -337,7 +337,7 @@ jobs:
           cd "$CONFIG/common"
           
           echo "Applying HymoFS patches..."
-          curl -LSs "https://raw.githubusercontent.com/Anatdx/HymoFS/main/patch/hymofs_with_susfs.patch" -o hymofs_with_susfs.patch
+          curl -LSs "https://raw.githubusercontent.com/Anatdx/HymoFS/1fd37123a4c6f4a234878749efcd57958bafe734/patch/hymofs_with_susfs.patch" -o hymofs_with_susfs.patch
           patch -p1 -F 3 < hymofs_with_susfs.patch
           
           echo "Registering HymoFS in fs/Makefile..."
@@ -581,13 +581,8 @@ jobs:
             fi
           fi
 
-      - name: Build with retry
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 30
-          max_attempts: 3
-          retry_on: timeout
-          command: |
+      - name: Build Kernel
+        run: |
             set -e
             set -x
             cd "$CONFIG"
