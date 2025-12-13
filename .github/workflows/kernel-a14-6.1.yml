@@ -107,3 +107,4 @@ jobs:
       use_kpm: ${{ inputs.use_kpm }}
       supp_op: ${{ inputs.supp_op || false }}
       BBG: ${{ inputs.BBG || false }}
+      hymo_fs: ${{ inputs.hymo_fs }}
