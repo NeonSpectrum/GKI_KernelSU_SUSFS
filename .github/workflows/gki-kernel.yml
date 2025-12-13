@@ -165,7 +165,6 @@ jobs:
           git clone https://github.com/ShirkNeko/susfs4ksu.git -b "$SUSFS_BRANCH"
           git clone https://github.com/Tools-cx-app/kernel_patches.git
           git clone https://github.com/ShirkNeko/SukiSU_patch.git
-          git clone https://github.com/Anatdx/HymoFS.git
           
       - name: Set CONFIG environment variable
         run: |
@@ -334,6 +333,36 @@ jobs:
             patch -p1 < fdinfo.c.patch
           else
             patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
+          fi
+
+      - name: Install HymoFS patches
+        if: ${{ inputs.hymo_fs }}
+        run: |
+          echo "Change to config directory: $CONFIG..."
+          cd "$CONFIG/common"
+          
+          echo "Applying HymoFS patches..."
+          curl -LSs "https://raw.githubusercontent.com/Anatdx/HymoFS/main/patch/hymofs_with_susfs.patch" -o hymofs_with_susfs.patch
+          patch -p1 -F 3 < hymofs_with_susfs.patch
+          
+          echo "Registering HymoFS in fs/Makefile..."
+          if ! grep -q "obj-\$(CONFIG_HYMOFS) += hymofs.o" fs/Makefile; then
+            echo "obj-\$(CONFIG_HYMOFS) += hymofs.o" >> fs/Makefile
+          fi
+          
+          echo "Registering HymoFS in fs/Kconfig..."
+          if ! grep -q "source \"fs/hymofs/Kconfig\"" fs/Kconfig && ! grep -q "config HYMOFS" fs/Kconfig; then
+             # Since the patch doesn't seem to include a Kconfig file for hymofs itself but adds it to fs/Kconfig potentially, 
+             # let's check the patch content again. The patch adds #ifdef CONFIG_HYMOFS blocks.
+             # We need to define CONFIG_HYMOFS.
+             # Usually a patch like this might expect us to add the Kconfig entry.
+             # Let's add a simple Kconfig entry if it's missing.
+             echo 'config HYMOFS
+            	bool "HymoFS filesystem support"
+            	default y
+            	help
+            	  HymoFS is a filesystem based on tmpfs with additional features.
+             ' >> fs/Kconfig
           fi
 
       - name: Some fix patches
@@ -512,32 +541,13 @@ jobs:
           echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
           
+          # Add HymoFS configuration settings
+          if [ "${{ inputs.hymo_fs }}" == "true" ]; then
+            echo "CONFIG_HYMOFS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          fi
+          
           # Remove check_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
-
-      - name: Add HymoFS
-        if: ${{ inputs.hymo_fs }}
-        run: |
-          echo "Change to config directory: $CONFIG..."
-          cd "$CONFIG"
-          cp ../HymoFS/src_modified_with_susfs/fs/* ./common/fs/
-          echo "CONFIG_HYMOFS=y" >> ./common/arch/arm64/configs/gki_defconfig # Write to defconfig
-
-      - name: Fix HymoFS compatibility for kernel 6.1
-        if: ${{ inputs.hymo_fs }}
-        run: |
-          echo "Applying HymoFS compatibility patch for kernel ${{ inputs.kernel_version }}..."
-          cd "$CONFIG/common/fs"
-          
-          # For kernel 6.1 and earlier, linux/filelock.h doesn't exist
-          # The file locking APIs are already available through linux/fs.h
-          if [[ "${{ inputs.kernel_version }}" == "6.1" ]] || [[ "${{ inputs.kernel_version }}" == "5."* ]]; then
-            echo "Removing incompatible linux/filelock.h include for kernel ${{ inputs.kernel_version }}"
-            sed -i '/#include <linux\/filelock.h>/d' open.c
-            echo "HymoFS compatibility patch applied successfully"
-          else
-            echo "Kernel ${{ inputs.kernel_version }} doesn't need compatibility patch"
-          fi
 
       - name: Configure kernel name
         run: |
