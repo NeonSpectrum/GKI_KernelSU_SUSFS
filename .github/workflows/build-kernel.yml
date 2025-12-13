@@ -48,30 +48,13 @@ on:
         default: false
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     env:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
       CCACHE_NOHASHDIR: "true"
       CCACHE_HARDLINK: "true"
 
     steps:
-      - name: Check Initial Disk Space
-        run: |
-          echo "===== Initial Total Disk Space in GB ====="
-          df -BG
-          
-      - name: Free Disk Space (Fast)
-        run: |
-          rm -rf /usr/share/dotnet
-          rm -rf /opt/ghc
-          rm -rf "/usr/local/share/boost"
-          rm -rf "$AGENT_TOOLSDIRECTORY"
-          
-      - name: Check Disk Space After Cleanup
-        run: |
-          echo "===== Total Disk Space After Cleanup in GB ====="
-          df -BG
-          
       - name: Set CONFIG environment variable
         run: |
           # Set CONFIG dynamically based on inputs values
@@ -82,48 +65,28 @@ jobs:
 
           echo "CONFIG set to: $CONFIG"
 
-      # Install ccache
-      - name: Install ccache
-        run: sudo apt update && sudo apt upgrade -y && sudo apt install -y ccache python3 git curl
-
-      - name: Restore ccache from cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.ccache
-            ~/.cache/bazel
-          key: ${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}-ccache-${{ github.sha }}
-          restore-keys: |
-            ${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}-ccache-
-
-      - name: Configure ccache
-        run: |
-          mkdir -p ~/.ccache
-          mkdir -p ~/.cache/bazel
-          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
-          ccache --version
-          ccache --max-size=10G
-          ccache --set-config=compression=true
-          echo "Initial ccache stats:"
-          ccache -s
-
-      - name: Cache toolchain
-        id: cache-toolchain
-        uses: actions/cache@v4
-        with:
-          path: |
-            kernel-build-tools
-            mkbootimg
-          key: toolchain-${{ runner.os }}-v1
-
-      # Step 2: Download toolchain if cache was not found
-      - name: Download toolchain (if cache not found)
-        if: steps.cache-toolchain.outputs.cache-hit != 'true'
+      # Step 2: Download toolchain
+      - name: Download toolchain
         run: |
           AOSP_MIRROR=https://android.googlesource.com
           BRANCH=main-kernel-build-2024
-          git clone $AOSP_MIRROR/kernel/prebuilts/build-tools -b $BRANCH --depth 1 kernel-build-tools
-          git clone $AOSP_MIRROR/platform/system/tools/mkbootimg -b $BRANCH --depth 1 mkbootimg
+          if [ -d "kernel-build-tools" ]; then
+            echo "Updating kernel-build-tools..."
+            cd kernel-build-tools
+            git pull
+            cd ..
+          else
+            git clone $AOSP_MIRROR/kernel/prebuilts/build-tools -b $BRANCH --depth 1 kernel-build-tools
+          fi
+
+          if [ -d "mkbootimg" ]; then
+            echo "Updating mkbootimg..."
+            cd mkbootimg
+            git pull
+            cd ..
+          else
+            git clone $AOSP_MIRROR/platform/system/tools/mkbootimg -b $BRANCH --depth 1 mkbootimg
+          fi
 
       - name: Set environment variables
         run: |
@@ -157,10 +120,34 @@ jobs:
           echo "Using branch for SUSFS: $SUSFS_BRANCH"
 
           # Clone repositories using the branch names
-          git clone https://github.com/WildPlusKernel/AnyKernel3.git -b "$ANYKERNEL_BRANCH" &
-          git clone https://github.com/ShirkNeko/susfs4ksu.git -b "$SUSFS_BRANCH" &
-          git clone https://github.com/Tools-cx-app/kernel_patches.git &
-          git clone https://github.com/ShirkNeko/SukiSU_patch.git &
+          if [ -d "AnyKernel3" ]; then
+            echo "Updating AnyKernel3..."
+            (cd AnyKernel3 && git pull) &
+          else
+            git clone https://github.com/WildPlusKernel/AnyKernel3.git -b "$ANYKERNEL_BRANCH" --depth 1 &
+          fi
+
+          if [ -d "susfs4ksu" ]; then
+            echo "Updating susfs4ksu..."
+            (cd susfs4ksu && git pull) &
+          else
+            git clone https://github.com/ShirkNeko/susfs4ksu.git -b "$SUSFS_BRANCH" --depth 1 &
+          fi
+
+          if [ -d "kernel_patches" ]; then
+            echo "Updating kernel_patches..."
+            (cd kernel_patches && git pull) &
+          else
+            git clone https://github.com/Tools-cx-app/kernel_patches.git --depth 1 &
+          fi
+
+          if [ -d "SukiSU_patch" ]; then
+            echo "Updating SukiSU_patch..."
+            (cd SukiSU_patch && git pull) &
+          else
+            git clone https://github.com/ShirkNeko/SukiSU_patch.git --depth 1 &
+          fi
+          
           wait
           
       - name: Set CONFIG environment variable
@@ -179,7 +166,15 @@ jobs:
           mkdir -p "$CONFIG"
           cd "$CONFIG"
 
-          # Initialize and sync kernel source
+          $REPO --version
+          
+          # Reset any local changes if the repo exists to ensure patches can be re-applied cleanly
+          if [ -d .repo ]; then
+            echo "Resetting local changes..."
+            $REPO forall -c "git reset --hard" || true
+            $REPO forall -c "git clean -fd" || true
+          fi
+
           echo "Initializing and syncing kernel source..."
           FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}"
           echo "Using branch for kernel source: $FORMATTED_BRANCH"
@@ -189,22 +184,14 @@ jobs:
           # Check if branch is deprecated
           if grep -q deprecated <<< $REMOTE_BRANCH; then
             echo "Found deprecated branch: $FORMATTED_BRANCH"
-            sed -i "s/\"${FORMATTED_BRANCH}\"/\"deprecated\/${FORMATTED_BRANCH}\"/g" $DEFAULT_MANIFEST_PATH
+            if ! grep -q "deprecated/${FORMATTED_BRANCH}" $DEFAULT_MANIFEST_PATH; then
+              sed -i "s/\"${FORMATTED_BRANCH}\"/\"deprecated\/${FORMATTED_BRANCH}\"/g" $DEFAULT_MANIFEST_PATH
+            fi
           fi
           # Sync repo and apply patches
           $REPO --version
           $REPO --trace sync -c -j$(nproc --all) --no-tags --fail-fast
           echo "REMOTE_BRANCH=$REMOTE_BRANCH" >> $GITHUB_ENV
-
-          FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}"
-          if grep -q deprecated <<< "$REMOTE_BRANCH" && \
-             { [ "$FORMATTED_BRANCH" == "android13-5.15" ] && \
-               [ ${{ inputs.sub_level }} -lt 123 ]; }; then
-            echo 'Fix 5.15 bug only supporting old C library'
-            cd ./common
-            curl -LSs https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/legacy/fix_5.15.legacy -o fix_5.15.legacy.patch
-            patch -p1 < fix_5.15.legacy.patch
-          fi
       
       - name: Determine KernelSU branch
         run: |
