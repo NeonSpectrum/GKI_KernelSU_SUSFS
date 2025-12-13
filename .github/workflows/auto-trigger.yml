@@ -88,5 +88,5 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/release.yml/dispatches \
             -d '{
               "ref": "main",
-              "inputs": ${{ env.AUTO_DEPLOY_INPUTS }}
+              "inputs": ${{ vars.AUTO_DEPLOY_INPUTS }}
             }'
