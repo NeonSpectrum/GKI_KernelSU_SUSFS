@@ -171,19 +171,19 @@ jobs:
 
           $REPO --version
           
-          echo "Initializing and syncing kernel source..."
-          FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}"
-          echo "Using branch for kernel source: $FORMATTED_BRANCH"
-          
-          # Initialize repo first. Remove --repo-rev command as it might not be resolvable.
-          $REPO init --depth=1 --u https://android.googlesource.com/kernel/manifest -b common-${FORMATTED_BRANCH}
-          
           # Reset any local changes if the repo exists to ensure patches can be re-applied cleanly
           if [ -d .repo ]; then
             echo "Resetting local changes..."
             $REPO forall -c "git reset --hard" || true
             $REPO forall -c "git clean -fd" || true
           fi
+          
+          echo "Initializing and syncing kernel source..."
+          FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}"
+          echo "Using branch for kernel source: $FORMATTED_BRANCH"
+          
+          # Initialize repo first. Remove --repo-rev command as it might not be resolvable.
+          $REPO init --depth=1 --u https://android.googlesource.com/kernel/manifest -b common-${FORMATTED_BRANCH} --repo-rev=v2.16
 
           REMOTE_BRANCH=$(git ls-remote https://android.googlesource.com/kernel/common ${FORMATTED_BRANCH})
           DEFAULT_MANIFEST_PATH=.repo/manifests/default.xml
