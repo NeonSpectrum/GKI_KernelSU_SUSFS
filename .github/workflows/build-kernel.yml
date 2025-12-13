@@ -162,6 +162,9 @@ jobs:
 
       - name: Initialize and sync kernel source
         run: |
+          echo "Unsetting REPO_URL..."
+          unset REPO_URL
+
           echo "Creating folder for configuration: $CONFIG..."
           mkdir -p "$CONFIG"
           cd "$CONFIG"
