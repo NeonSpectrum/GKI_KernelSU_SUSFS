@@ -6,10 +6,6 @@ permissions:
 on:
   workflow_call: # This allows this workflow to be called from another workflow
     inputs:
-      make_release:
-        required: true
-        type: boolean
-        default: true
       android_version:
         required: true
         type: string
@@ -28,9 +24,6 @@ on:
       kernelsu_branch:
         required: true
         type: string
-      revision:
-        required: false
-        type: string
       version:
         required: false
         type: string
@@ -45,10 +38,6 @@ on:
         required: true
         type: boolean
         default: true
-      supp_op:
-        required: true
-        type: boolean
-        default: false
       BBG:
         required: true
         type: boolean
@@ -58,7 +47,7 @@ on:
         type: boolean
         default: false
 jobs:
-  build-kernel-kernelsu-susfs:
+  build:
     runs-on: ubuntu-latest
     env:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
@@ -71,9 +60,12 @@ jobs:
           echo "===== Initial Total Disk Space in GB ====="
           df -BG
           
-      - name: Download Apache Arrow's util_free_space.sh
+      - name: Free Disk Space (Fast)
         run: |
-          curl -Ls https://raw.githubusercontent.com/apache/arrow/main/ci/scripts/util_free_space.sh | bash
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/ghc
+          rm -rf "/usr/local/share/boost"
+          rm -rf "$AGENT_TOOLSDIRECTORY"
           
       - name: Check Disk Space After Cleanup
         run: |
@@ -163,10 +155,11 @@ jobs:
           echo "Using branch for SUSFS: $SUSFS_BRANCH"
 
           # Clone repositories using the branch names
-          git clone https://github.com/WildPlusKernel/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
-          git clone https://github.com/ShirkNeko/susfs4ksu.git -b "$SUSFS_BRANCH"
-          git clone https://github.com/Tools-cx-app/kernel_patches.git
-          git clone https://github.com/ShirkNeko/SukiSU_patch.git
+          git clone https://github.com/WildPlusKernel/AnyKernel3.git -b "$ANYKERNEL_BRANCH" &
+          git clone https://github.com/ShirkNeko/susfs4ksu.git -b "$SUSFS_BRANCH" &
+          git clone https://github.com/Tools-cx-app/kernel_patches.git &
+          git clone https://github.com/ShirkNeko/SukiSU_patch.git &
+          wait
           
       - name: Set CONFIG environment variable
         run: |
@@ -480,13 +473,6 @@ jobs:
             echo "CONFIG_ZRAM_WRITEBACK=y" >> "$CONFIG_FILE"
           fi
 
-      - name: Set BBR as default congestion algorithm
-        if: ${{ inputs.set_defbbr }}
-        run: |
-          CONFIG_FILE="$CONFIG/common/arch/arm64/configs/gki_defconfig"
-          echo "Changing to configuration directory: $CONFIG_FILE..."
-          echo "CONFIG_DEFAULT_BBR=y" >> "$CONFIG_FILE"
-           
       - name: Add SUSFS configuration settings
         run: |
           echo "Change to config directory: $CONFIG..."
@@ -595,13 +581,8 @@ jobs:
             fi
           fi
 
-      - name: Build with retry
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 30
-          max_attempts: 3
-          retry_on: timeout
-          command: |
+      - name: Build Kernel
+        run: |
             set -e
             set -x
             cd "$CONFIG"
