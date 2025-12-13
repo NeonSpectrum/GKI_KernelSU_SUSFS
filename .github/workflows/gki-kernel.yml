@@ -424,37 +424,20 @@ jobs:
           echo "Writing LZ4KD&ZSTDN config dependencies"
           CONFIG_FILE="$CONFIG/common/arch/arm64/configs/gki_defconfig"
 
-          if [ "${{ inputs.kernel_version }}" = "5.10" ]; then
-            echo "CONFIG_ZSMALLOC=y" >> "$CONFIG_FILE"
-            echo "CONFIG_ZRAM=y" >> "$CONFIG_FILE"
-            echo "CONFIG_MODULE_SIG=n" >> "$CONFIG_FILE"
-            echo "CONFIG_CRYPTO_LZO=y" >> "$CONFIG_FILE"
-            echo "CONFIG_ZRAM_DEF_COMP_LZ4KD=y" >> "$CONFIG_FILE"
+          # sed -i 's/CONFIG_MODULE_SIG=y/CONFIG_MODULE_SIG=n/g' "$CONFIG_FILE"
+          if grep -q "CONFIG_ZSMALLOC" -- "$CONFIG_FILE"; then
+              echo "Note: File $CONFIG_FILE contains string CONFIG_ZSMALLOC."
+              sed -i 's/CONFIG_ZSMALLOC=m/CONFIG_ZSMALLOC=y/g' "$CONFIG_FILE"
+          else
+              echo "Warning: File $CONFIG_FILE does not contain string CONFIG_ZSMALLOC."
+              echo "CONFIG_ZSMALLOC=y" >> "$CONFIG_FILE"
           fi
 
-          if [ "${{ inputs.kernel_version }}" != "6.6" ] && [ "${{ inputs.kernel_version }}" != "5.10" ]; then
-            # sed -i 's/CONFIG_MODULE_SIG=y/CONFIG_MODULE_SIG=n/g' "$CONFIG_FILE"
-            if grep -q "CONFIG_ZSMALLOC" -- "$CONFIG_FILE"; then
-                echo "Note: File $CONFIG_FILE contains string CONFIG_ZSMALLOC."
-                sed -i 's/CONFIG_ZSMALLOC=m/CONFIG_ZSMALLOC=y/g' "$CONFIG_FILE"
-            else
-                echo "Warning: File $CONFIG_FILE does not contain string CONFIG_ZSMALLOC."
-                echo "CONFIG_ZSMALLOC=y" >> "$CONFIG_FILE"
-            fi
+          sed -i 's/CONFIG_ZRAM=m/CONFIG_ZRAM=y/g' "$CONFIG_FILE"
 
-            sed -i 's/CONFIG_ZRAM=m/CONFIG_ZRAM=y/g' "$CONFIG_FILE"
-          fi
-
-          if [ "${{ inputs.kernel_version }}" = "6.6" ]; then
-            echo "CONFIG_ZSMALLOC=y" >> "$CONFIG_FILE"
-            sed -i 's/CONFIG_ZRAM=m/CONFIG_ZRAM=y/g' "$CONFIG_FILE"
-          fi
-
-          if [ "${{ inputs.android_version }}" = "android14" ] || [ "${{ inputs.android_version }}" = "android15" ]; then
-            sed -i 's/"drivers\/block\/zram\/zram\.ko",//g; s/"mm\/zsmalloc\.ko",//g' "$CONFIG/common/modules.bzl"
-            echo "CONFIG_MODULE_SIG_FORCE=n" >> "$CONFIG_FILE"
-            echo 'Android14_Bazel: zram&zsmalloc fixed'
-          fi
+          sed -i 's/"drivers\/block\/zram\/zram\.ko",//g; s/"mm\/zsmalloc\.ko",//g' "$CONFIG/common/modules.bzl"
+          echo "CONFIG_MODULE_SIG_FORCE=n" >> "$CONFIG_FILE"
+          echo 'Android14_Bazel: zram&zsmalloc fixed'
 
           if grep -q "CONFIG_ZSMALLOC=y" "$CONFIG_FILE" && grep -q "CONFIG_ZRAM=y" "$CONFIG_FILE"; then
             echo "CONFIG_CRYPTO_LZ4HC=y" >> "$CONFIG_FILE"
@@ -536,7 +519,7 @@ jobs:
         run: |
           echo "Change to config directory: $CONFIG..."
           cd "$CONFIG"
-          wget https://raw.githubusercontent.com/Anatdx/HymoFS/refs/heads/main/patch/dirtyhymofs.patch
+          wget https://raw.githubusercontent.com/Anatdx/HymoFS/refs/heads/main/patch/hymofs_with_susfs.patch
           patch -p1 -F 3 < dirtyhymofs.patch
           echo "CONFIG_HYMOFS=y" >> ./common/arch/arm64/configs/gki_defconfig # Write to defconfig
 
@@ -613,16 +596,14 @@ jobs:
       - name: Patch Image file (SukiSU only)
         if: ${{ inputs.use_kpm && inputs.kernelsu_variant == 'SukiSU' }}
         run: |
-          if [ "${{ inputs.kernel_version }}" != "6.6" ]; then
-            echo "Patching Image file..."
-            cd "$CONFIG/bazel-bin/common/kernel_aarch64/"
-            curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" -o patch
-            chmod 777 patch
-            ./patch
-            rm -rf Image
-            mv oImage Image
-            cd ../../..
-          fi
+          echo "Patching Image file..."
+          cd "$CONFIG/bazel-bin/common/kernel_aarch64/"
+          curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" -o patch
+          chmod 777 patch
+          ./patch
+          rm -rf Image
+          mv oImage Image
+          cd ../../..
 
       - name: Copy Image
         run: |
