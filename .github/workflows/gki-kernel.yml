@@ -523,6 +523,22 @@ jobs:
           cp ../HymoFS/src_modified_with_susfs/fs/* ./common/fs/
           echo "CONFIG_HYMOFS=y" >> ./common/arch/arm64/configs/gki_defconfig # Write to defconfig
 
+      - name: Fix HymoFS compatibility for kernel 6.1
+        if: ${{ inputs.hymo_fs }}
+        run: |
+          echo "Applying HymoFS compatibility patch for kernel ${{ inputs.kernel_version }}..."
+          cd "$CONFIG/common/fs"
+          
+          # For kernel 6.1 and earlier, linux/filelock.h doesn't exist
+          # The file locking APIs are already available through linux/fs.h
+          if [[ "${{ inputs.kernel_version }}" == "6.1" ]] || [[ "${{ inputs.kernel_version }}" == "5."* ]]; then
+            echo "Removing incompatible linux/filelock.h include for kernel ${{ inputs.kernel_version }}"
+            sed -i '/#include <linux\/filelock.h>/d' open.c
+            echo "HymoFS compatibility patch applied successfully"
+          else
+            echo "Kernel ${{ inputs.kernel_version }} doesn't need compatibility patch"
+          fi
+
       - name: Configure kernel name
         run: |
           echo "Change to config directory: $CONFIG..."
