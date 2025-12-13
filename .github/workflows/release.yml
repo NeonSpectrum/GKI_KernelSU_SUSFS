@@ -39,12 +39,12 @@ on:
         description: 'Custom version name (e.g., characters after 5.10.198 / leave blank to use default version number)'
         required: false
         type: string
-        default: ${{ env.DEFAULT_KERNEL_VERSION || '' }}
+        default: ${{ env.DEFAULT_KERNEL_VERSION }}
       build_time:
         description: 'Set build time of kernel (e.g. Sat Jun 07 14:29:29 CST 2025)'
         required: false
         type: string
-        default: ${{ env.DEFAULT_KERNEL_BUILD_TIME || '' }}
+        default: ${{ env.DEFAULT_KERNEL_BUILD_TIME }}
       use_zram:
         description: 'Enable more ZRAM algorithms?'
         required: true
