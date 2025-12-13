@@ -44,6 +44,11 @@ on:
         required: true
         type: boolean
         default: true
+      hymo_fs:
+        description: 'Enable HymoFS?'
+        required: true
+        type: boolean
+        default: false
 
 jobs:
   build-kernel-a14-6-1:
@@ -57,3 +62,4 @@ jobs:
       build_time: ${{ inputs.build_time }}
       use_zram: ${{ inputs.use_zram }}
       use_kpm: ${{ inputs.use_kpm }}
+      hymo_fs: ${{ inputs.hymo_fs }}

@@ -53,6 +53,10 @@ on:
         required: true
         type: boolean
         default: false
+      hymo_fs:
+        required: true
+        type: boolean
+        default: false
 jobs:
   build-kernel-kernelsu-susfs:
     runs-on: ubuntu-latest
@@ -526,6 +530,15 @@ jobs:
           
           # Remove check_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
+
+      - name: Add HymoFS
+        if: ${{ inputs.hymo_fs }}
+        run: |
+          echo "Change to config directory: $CONFIG..."
+          cd "$CONFIG"
+          wget https://raw.githubusercontent.com/Anatdx/HymoFS/refs/heads/main/patch/dirtyhymofs.patch
+          patch -p1 -F 3 < dirtyhymofs.patch
+          echo "CONFIG_HYMOFS=y" >> ./common/arch/arm64/configs/gki_defconfig # Write to defconfig
 
       - name: Configure kernel name
         run: |

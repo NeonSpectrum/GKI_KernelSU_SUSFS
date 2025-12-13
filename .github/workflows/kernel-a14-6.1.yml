@@ -41,6 +41,11 @@ on:
         required: true
         type: boolean
         default: false
+      hymo_fs:
+        description: 'Enable HymoFS?'
+        required: true
+        type: boolean
+        default: false
 
 jobs:
   build-kernel-a14-6-1-kernelsu-susfs:

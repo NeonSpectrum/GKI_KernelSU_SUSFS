@@ -60,6 +60,11 @@ on:
         required: true
         type: boolean
         default: true
+      hymo_fs:
+        description: 'Enable HymoFS?'
+        required: true
+        type: boolean
+        default: false
 
 
 jobs:
