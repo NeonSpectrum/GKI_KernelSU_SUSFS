@@ -25,7 +25,6 @@ jobs:
       - name: Get previous SHA from sha branch
         id: get_prev_sha
         run: |
-
           if git ls-remote --heads origin sha | grep -q sha; then
             echo "SHA branch exists, fetching previous SHA..."
             git fetch origin sha:sha || true
@@ -65,10 +64,8 @@ jobs:
       - name: Update SHA file in sha branch
         if: steps.compare.outputs.new_commit == 'true'
         run: |
-
           git checkout sha 2>/dev/null || git checkout --orphan sha
           
-
           if [ ! -f "latest_sha.txt" ]; then
             git rm -rf . 2>/dev/null || true
           fi
@@ -91,15 +88,5 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/release.yml/dispatches \
             -d '{
               "ref": "main",
-              "inputs": {
-                "make_release": "true",
-                "kernelsu_variant": "SukiSU",
-                "kernelsu_branch": "Stable",
-                "version": "-android14-11-gca0ef6d17716-ab13624819",
-                "build_time": "Tue Jun 10 18:59:08 UTC 2025",
-                "use_zram": "false",
-                "BBG": "true",
-                "use_kpm": "true",
-                "hymo_fs": "false"
-              }
+              "inputs": ${{ env.AUTO_DEPLOY_INPUTS }}
             }'

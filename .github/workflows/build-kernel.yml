@@ -38,11 +38,11 @@ on:
         required: true
         type: boolean
         default: true
-      BBG:
+      use_bbg:
         required: true
         type: boolean
         default: false
-      hymo_fs:
+      use_hymo_fs:
         required: true
         type: boolean
         default: false
@@ -250,7 +250,7 @@ jobs:
           fi
 
       - name: Add Baseband-guard support
-        if: ${{ github.event.inputs.BBG == 'true' }}
+        if: ${{ inputs.use_bbg }}
         run: |
           echo "Change to config directory: $CONFIG..."
           cd "$CONFIG/common"
@@ -331,7 +331,7 @@ jobs:
           fi
 
       - name: Install HymoFS patches
-        if: ${{ inputs.hymo_fs }}
+        if: ${{ inputs.use_hymo_fs }}
         run: |
           echo "Change to config directory: $CONFIG..."
           cd "$CONFIG/common"
@@ -530,7 +530,7 @@ jobs:
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
           
           # Add HymoFS configuration settings
-          if [ "${{ inputs.hymo_fs }}" == "true" ]; then
+          if [ "${{ inputs.use_hymo_fs }}" == "true" ]; then
             echo "CONFIG_HYMOFS=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
           
@@ -581,8 +581,13 @@ jobs:
             fi
           fi
 
-      - name: Build Kernel
-        run: |
+      - name: Build with retry
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          retry_on: timeout
+          command: |
             set -e
             set -x
             cd "$CONFIG"

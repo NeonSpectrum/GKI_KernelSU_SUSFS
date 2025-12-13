@@ -39,12 +39,12 @@ on:
         description: 'Custom version name (e.g., characters after 5.10.198 / leave blank to use default version number)'
         required: false
         type: string
-        default: "-android14-11-gca0ef6d17716-ab13624819"
+        default: ${{ env.DEFAULT_KERNEL_VERSION || '' }}
       build_time:
         description: 'Set build time of kernel (e.g. Sat Jun 07 14:29:29 CST 2025)'
         required: false
         type: string
-        default: "Tue Jun 10 18:59:08 UTC 2025"
+        default: ${{ env.DEFAULT_KERNEL_BUILD_TIME || '' }}
       use_zram:
         description: 'Enable more ZRAM algorithms?'
         required: true
@@ -55,12 +55,12 @@ on:
         required: true
         type: boolean
         default: true
-      BBG:
+      use_bbg:
         description: "Enable Kernel-level blocking of illegal writes to critical partitions/device nodes (LSM)?"
         required: true
         type: boolean
         default: true
-      hymo_fs:
+      use_hymo_fs:
         description: 'Enable HymoFS?'
         required: true
         type: boolean
@@ -88,8 +88,8 @@ jobs:
       build_time: ${{ inputs.build_time }}
       use_zram: ${{ inputs.use_zram }}
       use_kpm: ${{ inputs.use_kpm }}
-      BBG: ${{ inputs.BBG }}
-      hymo_fs: ${{ inputs.hymo_fs }}
+      use_bbg: ${{ inputs.use_bbg }}
+      use_hymo_fs: ${{ inputs.use_hymo_fs }}
   release:
     runs-on: ubuntu-latest
     permissions:
@@ -112,8 +112,8 @@ jobs:
         -> Futile hiding for jit-zygote-cache detection
         -> Wireguard Support
         -> BBR Support
-        ${{ inputs.BBG && '-> BBG Support' || '' }}
-        -> BBG ${{ inputs.BBG && 'supported' || 'not supported' }}
+        ${{ inputs.use_bbg && '-> BBG Support' || '' }}
+        -> BBG ${{ inputs.use_bbg && 'supported' || 'not supported' }}
         ${{ inputs.use_kpm && '-> KPM Support' || '' }}
         -> **LZ4KD&ONEPLUS_LZ4K** ${{ inputs.use_zram && 'supported' || 'not supported' }}
         
