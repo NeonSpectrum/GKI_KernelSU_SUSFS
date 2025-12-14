@@ -337,7 +337,7 @@ jobs:
           curl -LSs "${{ vars.HYMOFS_PATCH_URL }}" -o hymofs_with_susfs.patch
 
           echo "Removing comments from patch file..."
-          sed -i '/^[+-]/ s/\/\*[^/]*\*\///g' hymofs_with_susfs.patch
+          sed -i -E 's/^([+].*)\/\*[^/]*\*\/(.*)$/\1\2/g' hymofs_with_susfs.patch
 
           patch -p1 -F 3 < hymofs_with_susfs.patch
           echo "CONFIG_HYMOFS=y" >> ./arch/arm64/configs/gki_defconfig
