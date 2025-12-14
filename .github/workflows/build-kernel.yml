@@ -335,27 +335,13 @@ jobs:
           
           echo "Applying HymoFS patches..."
           curl -LSs "${{ vars.HYMOFS_PATCH_URL }}" -o hymofs_with_susfs.patch
+
+          echo "Removing comments from patch file..."
+          sed -i '/^[+-]/ s/\/\*[^/]*\*\///g' hymofs_with_susfs.patch
+
           patch -p1 -F 3 < hymofs_with_susfs.patch
+          echo "CONFIG_HYMOFS=y" >> ./arch/arm64/configs/gki_defconfig
           
-          echo "Registering HymoFS in fs/Makefile..."
-          if ! grep -q "obj-\$(CONFIG_HYMOFS) += hymofs.o" fs/Makefile; then
-            echo "obj-\$(CONFIG_HYMOFS) += hymofs.o" >> fs/Makefile
-          fi
-          
-          echo "Registering HymoFS in fs/Kconfig..."
-          if ! grep -q "source \"fs/hymofs/Kconfig\"" fs/Kconfig && ! grep -q "config HYMOFS" fs/Kconfig; then
-             # Since the patch doesn't seem to include a Kconfig file for hymofs itself but adds it to fs/Kconfig potentially, 
-             # let's check the patch content again. The patch adds #ifdef CONFIG_HYMOFS blocks.
-             # We need to define CONFIG_HYMOFS.
-             # Usually a patch like this might expect us to add the Kconfig entry.
-             # Let's add a simple Kconfig entry if it's missing.
-             echo 'config HYMOFS
-            	bool "HymoFS filesystem support"
-            	default y
-            	help
-            	  HymoFS is a filesystem based on tmpfs with additional features.
-             ' >> fs/Kconfig
-          fi
 
       - name: Some fix patches
         run: |
