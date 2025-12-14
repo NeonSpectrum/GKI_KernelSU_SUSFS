@@ -336,8 +336,14 @@ jobs:
           echo "Applying HymoFS patches..."
           curl -LSs "${{ vars.HYMOFS_PATCH_URL }}" -o hymofs_with_susfs.patch
 
-          # echo "Removing comments from patch file..."
-          # sed -i -E 's/^([+].*)\/\*[^/]*\*\/(.*)$/\1\2/g' hymofs_with_susfs.patch
+          echo "Removing comments from patch file..."
+          sed -i -E 's/^([+].*)\/\*[^/]*\*\/(.*)$/\1\2/g' hymofs_with_susfs.patch
+
+          echo "Apply some fixes..."
+          sed -i -e 's/mnt_idmap(path->mnt)/mnt_user_ns(path->mnt)/' \
+            -e 's/\(idmap = mnt_idmap(path->mnt)\)/# \1\n\t\mnt_userns = mnt_user_ns(path->mnt)/' \
+            -e 's/idmap/mnt_userns/g' \
+            -e 's/generic_fillattr(mnt_userns, request_mask, inode, stat)/generic_fillattr(mnt_userns, inode, stat)/' hymofs_with_susfs.patch
 
           patch -p1 -F 3 < hymofs_with_susfs.patch
           echo "CONFIG_HYMOFS=y" >> ./arch/arm64/configs/gki_defconfig
