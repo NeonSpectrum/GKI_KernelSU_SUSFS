@@ -115,7 +115,7 @@ jobs:
         ${{ inputs.use_bbg && '-> BBG Support' || '' }}
         ${{ inputs.use_kpm && '-> KPM Support' || '' }}
         -> **LZ4KD&ONEPLUS_LZ4K** ${{ inputs.use_zram && 'supported' || 'not supported' }}
-        -> HymoFS ${{ inputs.use_hymofs && 'supported' || 'not supported' }}
+        ${{ inputs.use_hymofs && '-> HymoFS Support' || '' }}
         
         <details>
         <summary>Notes:</summary>
